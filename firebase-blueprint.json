@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "Candidate": {
+      "title": "Candidate",
+      "description": "Represents a recruitment candidate",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "experience": { "type": "string" },
+        "status": { "type": "string", "enum": ["New", "Interview", "Selected", "Rejected", "Blacklisted"] },
+        "resumeUrl": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "documents": {
+          "type": "object",
+          "properties": {
+            "aadharCardUrl": { "type": "string" },
+            "panCardUrl": { "type": "string" },
+            "passportUrl": { "type": "string" },
+            "drivingLicenceUrl": { "type": "string" }
+          }
+        },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["name", "phone", "email", "status", "createdAt"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Represents a client company",
+      "type": "object",
+      "properties": {
+        "companyName": { "type": "string" },
+        "industry": { "type": "string" },
+        "contactPerson": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["companyName", "contactPerson", "phone", "createdAt"]
+    },
+    "Job": {
+      "title": "Job",
+      "description": "Represents a job opening",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "clientId": { "type": "string" },
+        "skillsRequired": { "type": "array", "items": { "type": "string" } },
+        "salary": { "type": "string" },
+        "location": { "type": "string" },
+        "openings": { "type": "number" },
+        "status": { "type": "string", "enum": ["Open", "Closed", "Paused"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["title", "clientId", "status", "createdAt"]
+    },
+    "Application": {
+      "title": "Application",
+      "description": "Represents a candidate's application for a job",
+      "type": "object",
+      "properties": {
+        "candidateId": { "type": "string" },
+        "jobId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Applied", "Shortlisted", "Interview", "Selected", "Rejected"] },
+        "appliedAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["candidateId", "jobId", "status", "appliedAt"]
+    },
+    "History": {
+      "title": "History",
+      "description": "Represents employee history and feedback",
+      "type": "object",
+      "properties": {
+        "candidateId": { "type": "string" },
+        "company": { "type": "string" },
+        "role": { "type": "string" },
+        "joiningDate": { "type": "string" },
+        "leavingDate": { "type": "string" },
+        "performanceRating": { "type": "number" },
+        "exitReason": { "type": "string" },
+        "eligibleForRehire": { "type": "boolean" },
+        "confidentialNotes": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["candidateId", "company", "role", "joiningDate", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/candidates/{candidateId}": {
+      "schema": "Candidate",
+      "description": "Recruitment candidates"
+    },
+    "/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Client companies"
+    },
+    "/jobs/{jobId}": {
+      "schema": "Job",
+      "description": "Job openings"
+    },
+    "/applications/{applicationId}": {
+      "schema": "Application",
+      "description": "Candidate applications"
+    },
+    "/history/{historyId}": {
+      "schema": "History",
+      "description": "Employee performance and history"
+    }
+  }
+}

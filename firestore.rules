@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Users
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Candidates
+    match /candidates/{candidateId} {
+      allow read, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // Clients
+    match /clients/{clientId} {
+      allow read, list: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // Jobs
+    match /jobs/{jobId} {
+      allow read, list: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // Applications
+    match /applications/{applicationId} {
+      allow read, list: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // History
+    match /history/{historyId} {
+      // Recruiters can read history, but we should be careful with confidentialNotes.
+      // In a production app, we'd split the confidential data into a subcollection.
+      allow read, list: if isSignedIn();
+      
+      allow create: if isSignedIn() && (
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['confidentialNotes']) || 
+        isAdmin()
+      );
+      
+      allow update: if isSignedIn() && (
+        (isAdmin()) || 
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['confidentialNotes']))
+      );
+      
+      allow delete: if isAdmin();
+    }
+
+    // Admins collection (protected)
+    match /admins/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow write: if false; // Only manageable via console
+    }
+  }
+}
